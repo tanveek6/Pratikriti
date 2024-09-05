@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to your stylesheet -->
+    <style>
+        .cart-item { margin-bottom: 20px; }
+        .cart-item input { width: 50px; text-align: center; }
+        .cart-item button { margin: 0 5px; }
+        .order-form { display: none; margin-top: 20px; }
+        .order-form input, .order-form textarea { display: block; margin-bottom: 10px; }
+        .order-button { margin-top: 20px; }
+    </style>
+    <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+    </script>
+    <script type="text/javascript">
+    (function(){
+        emailjs.init({
+            publicKey: "v1cmfhRMpNqL0hqeM",
+        });
+    })();
+    </script>
+</head>
+<body>
+    <h1>Your Cart</h1>
+    <div id="cart-items"></div>
+    <button class="order-button" onclick="showOrderForm()">Fill Order Details</button>
+
+    <!-- Order form, hidden initially -->
+    <div class="order-form" id="order-form">
+        <h3>Enter Order Information</h3>
+        <label for="name">Name:</label>
+        <input type="text" id="name" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" required>
+
+        <label for="number">Phone Number:</label>
+        <input type="tel" id="number" required>
+
+        <label for="message">Additional Message:</label>
+        <textarea id="message" rows="4" placeholder="Optional"></textarea>
+
+        <button class="place-order-button" onclick="placeOrder()">Place Order</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+            const cartItemsContainer = document.getElementById('cart-items');
+            
+            // Check if cart is empty
+            if (cartItems.length === 0) {
+                cartItemsContainer.innerHTML = '<p>Your cart is empty.</p>';
+                return;
+            }
+
+            // Function to save cart items to localStorage
+            function saveCartItems() {
+                localStorage.setItem('cartItems', JSON.stringify(cartItems));
+            }
+
+            // Generate cart items
+            cartItems.forEach((item, index) => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'cart-item';
+                itemElement.innerHTML = `
+                    <p>Item: ${item.dataName}</p>
+                    <p>Price: ₹${item.price}</p>
+                    <label>Quantity:</label>
+                    <input type="number" min="1" value="${item.quantity || 1}" id="quantity-${index}">
+                    <button onclick="increaseQuantity(${index})">+</button>
+                    <button onclick="decreaseQuantity(${index})">-</button>
+                    <button onclick="removeItem(${index})">Remove</button>
+                `;
+                cartItemsContainer.appendChild(itemElement);
+            });
+
+            window.increaseQuantity = function(index) {
+                cartItems[index].quantity = (cartItems[index].quantity || 1) + 1;
+                updateCart();
+            };
+
+            window.decreaseQuantity = function(index) {
+                if ((cartItems[index].quantity || 1) > 1) {
+                    cartItems[index].quantity -= 1;
+                    updateCart();
+                }
+            };
+
+            window.removeItem = function(index) {
+                cartItems.splice(index, 1);
+                updateCart();
+            };
+
+            function updateCart() {
+                saveCartItems();
+                cartItemsContainer.innerHTML = '';
+                cartItems.forEach((item, index) => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'cart-item';
+                    itemElement.innerHTML = `
+                        <p>Item: ${item.dataName}</p>
+                        <p>Price: ₹${item.price}</p>
+                        <label>Quantity:</label>
+                        <input type="number" min="1" value="${item.quantity || 1}" id="quantity-${index}">
+                        <button onclick="increaseQuantity(${index})">+</button>
+                        <button onclick="decreaseQuantity(${index})">-</button>
+                        <button onclick="removeItem(${index})">Remove</button>
+                    `;
+                    cartItemsContainer.appendChild(itemElement);
+                });
+            }
+
+            window.showOrderForm = function() {
+                document.getElementById('order-form').style.display = 'block';
+            };
+
+            window.placeOrder = function() {
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+                const number = document.getElementById('number').value;
+                const message = document.getElementById('message').value;
+
+                const emailParams = {
+                    Name: name,
+                    Email: email,
+                    Number: number,
+                    Message: message || 'No additional message provided',
+                    CartDetails: formatCartDetails()
+                };
+
+                emailjs.send('service_rbxw2mv', 'template_nbrzmzb', emailParams)
+                    .then((response) => {
+                        console.log('SUCCESS!', response.status, response.text);
+                        alert('Order placed and email sent successfully!');
+                        localStorage.removeItem('cartItems');
+                        cartItemsContainer.innerHTML = '<p>Your cart is empty.</p>';
+                        document.getElementById('order-form').style.display = 'none';
+                    }, (error) => {
+                        console.log('FAILED...', error);
+                        alert('Failed to send email.');
+                    });
+            };
+
+            function formatCartDetails() {
+                let details = 'Cart Information:\n\n';
+                cartItems.forEach(item => {
+                    details += `Item: ${item.dataName}\nPrice: ₹${item.price}\nQuantity: ${item.quantity || 1}\n\n`;
+                });
+                return details;
+            }
+        });
+    </script>
+</body>
+</html>
