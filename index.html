@@ -360,25 +360,28 @@
       </div>
    </div>
 </section>
-<Script>
+
+<script>
 function SendMail() {
     var formData = new FormData(document.getElementById("contact-form"));
     var fileInput = document.getElementById("Image").files[0];
 
+    // Prepare the data to send
+    var params = {
+        Name: formData.get('Name'),
+        Email: formData.get('Email'),
+        Number: formData.get('Number'),
+        Message: formData.get('Message'),
+        ImageUrl: '' // Default empty value for the image
+    };
+
     if (fileInput) {
         var reader = new FileReader();
         reader.onloadend = function() {
-            var imageUrl = reader.result; // Data URL of the image
-            formData.append('ImageUrl', imageUrl);
+            // Convert image to Base64 and update params
+            params.ImageUrl = reader.result;
 
-            var params = {
-                Name: formData.get('Name'),
-                Email: formData.get('Email'),
-                Number: formData.get('Number'),
-                Message: formData.get('Message'),
-                ImageUrl: imageUrl // Add the Data URL to the parameters
-            };
-
+            // Send email using EmailJS
             emailjs.send('service_b5h69by', 'template_87dalws', params).then(
                 (response) => {
                     console.log('SUCCESS!', response.status, response.text);
@@ -388,16 +391,9 @@ function SendMail() {
                 }
             );
         };
-        reader.readAsDataURL(fileInput); // Convert file to Data URL
+        reader.readAsDataURL(fileInput); // Convert file to Base64 Data URL
     } else {
-        var params = {
-            Name: formData.get('Name'),
-            Email: formData.get('Email'),
-            Number: formData.get('Number'),
-            Message: formData.get('Message'),
-            ImageUrl: '' // No image if not provided
-        };
-
+        // Send email without image
         emailjs.send('service_b5h69by', 'template_87dalws', params).then(
             (response) => {
                 console.log('SUCCESS!', response.status, response.text);
@@ -408,7 +404,7 @@ function SendMail() {
         );
     }
 }
-</Script>
+</script>
  
 <!--contact sections ends-->
 <!--footer sections starts-->
