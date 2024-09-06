@@ -345,40 +345,69 @@
 <!--review sections ends-->
 
 <section class="contact" id="contact">
-	<h1 class="heading"><span>contact</span> us </h1>
-	<div class="row">
-	   <form id="contact-form">
-		  <input type="text" placeholder="Name" name="Name" id="Name" class="box">
-		  <input type="email" placeholder="Email" name="Email" id="Email" class="box">
-		  <input type="text" placeholder="Number" name="Number" id="Number" class="box">
-		  <textarea name="Message" class="box" placeholder="Message" id="Message" cols="" rows="10"></textarea>
-		  <button onclick="SendMail()" class="btn">Send Message</button>
-	   </form>
-	   <div class="image">
-		  <img src="pin.jpg" alt="">
-	   </div>
-	</div>
- </section>
+   <h1 class="heading"><span>contact</span> us </h1>
+   <div class="row">
+      <form id="contact-form">
+         <input type="text" placeholder="Name" name="Name" id="Name" class="box">
+         <input type="email" placeholder="Email" name="Email" id="Email" class="box">
+         <input type="text" placeholder="Number" name="Number" id="Number" class="box">
+         <textarea name="Message" class="box" placeholder="Message" id="Message" cols="" rows="10"></textarea>
+         <input type="file" name="Image" id="Image" class="box">
+         <button type="button" onclick="SendMail()" class="btn">Send Message</button>
+      </form>
+      <div class="image">
+         <img src="pin.jpg" alt="">
+      </div>
+   </div>
+</section>
 
-<script>
-	function SendMail() {
-		var params = {
-			Name : document.getElementById("Name").value,
-			Email : document.getElementById("Email").value,
-			Number : document.getElementById("Number").value,
-			Message : document.getElementById("Message").value
-	
-		};
-		emailjs.send('service_b5h69by', 'template_87dalws', params).then(
-			(response) => {
-			  console.log('SUCCESS!', response.status, response.text);
-			},
-			(error) => {
-			  console.log('FAILED...', error);
-			},
-		  );
-	}
-</script>
+function SendMail() {
+    var formData = new FormData(document.getElementById("contact-form"));
+    var fileInput = document.getElementById("Image").files[0];
+
+    if (fileInput) {
+        var reader = new FileReader();
+        reader.onloadend = function() {
+            var imageUrl = reader.result; // Data URL of the image
+            formData.append('ImageUrl', imageUrl);
+
+            var params = {
+                Name: formData.get('Name'),
+                Email: formData.get('Email'),
+                Number: formData.get('Number'),
+                Message: formData.get('Message'),
+                ImageUrl: imageUrl // Add the Data URL to the parameters
+            };
+
+            emailjs.send('service_b5h69by', 'template_87dalws', params).then(
+                (response) => {
+                    console.log('SUCCESS!', response.status, response.text);
+                },
+                (error) => {
+                    console.log('FAILED...', error);
+                }
+            );
+        };
+        reader.readAsDataURL(fileInput); // Convert file to Data URL
+    } else {
+        var params = {
+            Name: formData.get('Name'),
+            Email: formData.get('Email'),
+            Number: formData.get('Number'),
+            Message: formData.get('Message'),
+            ImageUrl: '' // No image if not provided
+        };
+
+        emailjs.send('service_b5h69by', 'template_87dalws', params).then(
+            (response) => {
+                console.log('SUCCESS!', response.status, response.text);
+            },
+            (error) => {
+                console.log('FAILED...', error);
+            }
+        );
+    }
+}
  
 <!--contact sections ends-->
 <!--footer sections starts-->
